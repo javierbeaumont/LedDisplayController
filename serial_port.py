@@ -2,18 +2,21 @@
 
 import serial
 
-# TODO Own data
-file = open('examples/test.bin', 'rb')
-data = file.read()
+class Send:
+    PORT = '/dev/ttyUSB0'
 
-PORT = '/dev/ttyUSB0'
+    def data(self, data):
+        # Configure port
+        led = serial.Serial(self.PORT, baudrate = 19200, stopbits = serial.STOPBITS_TWO, timeout = 0)
 
-led = serial.Serial(PORT, baudrate = 19200, stopbits = serial.STOPBITS_TWO, timeout = 0) # Configure port
+        # Write data
+        led.write(data)
 
-led.write(data) # Write data
+        # Read data (TODO fix)
+        r = led.read()
+        print(r)
 
-# TODO Fix Read data
-r = led.read() # Write data
-print(r)
+        # Close port
+        led.close()
 
-led.close() # Close port
+        return True
