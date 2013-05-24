@@ -4,7 +4,7 @@ import subprocess
 
 class Text:
 
-    LENGTH = 150
+    LENGTH = 128
     HEIGHT = 16
     DATABYTES = 990
 
@@ -28,7 +28,7 @@ class Text:
             if len(line) > self.LENGTH:
                 line = line[:(self.LENGTH -1)]
             else:
-                line = '{:0^150}'.format(line)
+                line = '{:0^128}'.format(line)
 
             lines[i] = line
 
