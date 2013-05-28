@@ -152,9 +152,9 @@ class StandardInput:
             bytes_list += data_frame.get(data)
 
             # Send bynary data to leds
-#            in_out = inout.serial.SerialPort(self.settings)
-#            in_out.send(self.__format(bytes_list, {'input': 'd'}))
+            in_out = inout.serial.SerialPort(self.settings)
+            in_out.send(self.__format(bytes_list, {'input': 'd'}))
 
-            filename = open('com1', 'wb')
-            filename.write(self.__format(bytes_list, {'input': 'd'}))
-            filename.close()
+#            filename = open('com1', 'wb')
+#            filename.write(self.__format(bytes_list, {'input': 'd'}))
+#            filename.close()
