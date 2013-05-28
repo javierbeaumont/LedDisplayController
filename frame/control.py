@@ -1,95 +1,83 @@
 #!/usr/bin/env python3
 
-class New:
-    """A Control Frame class"""
+class ControlFrame:
+    '''A Control Frame class'''
 
-    SIGN = 0x5f
+    def __init__(self, settings, screen = {}, mode = []):
+        # Define screnn and mode bytes
+        self.data_bytes = {
+            'screen': {
+                0: 'number',
+                1: 'sign',
+                2: 'amount',
+                4: 'first',
+                5: 'last',
+                6: 'width',
+                7: 'height',
+                8: 'color',
+                9: 'total',
+                10: 'sdv'
+            },
+            'mode': {
+                11: 'leadin',
+                12: 'leadout',
+                13: 'delay',
+                14: 'speed',
+                15: 'append',
+                16: 'animation'
+            },
+            'amount': {
+                'mode': 6
+            }
+        }
 
-    screen = {
-        'number': 0,
-        'amount': 1,
-        'first': 0,
-        'last': 0,
-        'length': 128,
-        'height': 16,
-        'color': 1,
-        'maximumAmount': 150,
-        'displaySdv': 1
-    }
+        # Define append bits
+        self.data_bits = {
+            'append': {
+                0: 'animation',
+                1: 'repose',
+                3: 'time',
+                4: 'continous',
+                5: 'pause',
+                7: 'winkle'
+            }
+        }
 
-    mode = {
-        'leadIn': 0,
-        'leadOut': 0,
-        'timeDelay': 10,
-        'speed': 0,
-        'append': {
-            'animation': 0,
-            'repose': 0,
-            'time': 0,
-            'continous': 0,
-            'pause': 0,
-            'winkle': 0
-        },
-        'animation': 0
-    }
+        # Read Control Frame Settings
+        self.screen = settings['screen']
 
-    modeList = []
+        # Define Screen (Control Frame Sign: 0x5f)
+        self.screen.update({'sign': 95, 'amount': 1, 'sdv': 1})
 
-    def __init__(self, screen = {}, mode = []):
         self.screen.update(screen)
+        self.screen['width'] = round(self.screen['width'] / 8)
+        self.screen['height'] = round(self.screen['height'] / 8)
 
-        self.modeList = [self.mode for i in range(self.screen['amount'])]
+        # Define Screen Mode
+        self.mode = [{'delay': 10, 'append': {}}] * self.screen['amount']
 
-        for i in range(self.screen['amount']):
-            if i < len(mode):
-                self.modeList[i].update(mode[i])
+        for i in range(min(self.screen['amount'], len(mode))):
+            self.mode[i].update(mode[i])
 
-    def bytes(self):
-        bytes = [
-            self.screen['number'],
-            int(self.SIGN),
-            self.screen['amount'],
-            0,
-            self.screen['first'],
-            self.screen['last'],
-            round(self.screen['length'] / 8),
-            round(self.screen['height'] / 8),
-            self.screen['color'],
-            self.screen['maximumAmount'],
-            self.screen['displaySdv']
-        ]
+        # Define Frame Layout
+        self.bytes = [0] * sum(settings['frames']['bytes'].values())
 
-        count = 10
+    def get(self):
+        for (byte, name) in self.data_bytes['screen'].items():
+            self.bytes[byte] = self.screen.get(name, 0)
 
         for i in range(self.screen['amount']):
-            mode = self.modeList[i]
-            append = mode['append']
+            append_mode = ['0'] * 8
 
-            append = ''.join([
-                str(mode['append']['animation']),
-                str(mode['append']['repose']),
-                '0',
-                str(mode['append']['time']),
-                str(mode['append']['continous']),
-                str(mode['append']['pause']),
-                '0',
-                str(mode['append']['winkle'])
-            ])
+            for (bit, name) in self.data_bits['append'].items():
+                append_mode[bit] = str(self.mode[i]['append'].get(name, 0))
 
-            bytes += [
-                mode['leadIn'],
-                mode['leadOut'],
-                mode['timeDelay'],
-                mode['speed'],
-                int(append, 2),
-                mode['animation']
-            ]
+            self.mode[i]['append'] = int(''.join(append_mode), 2)
 
-            count += 6
+            c = self.data_bytes['amount']['mode']
+            for (byte, name) in self.data_bytes['mode'].items():
+                self.bytes[i * c + int(byte)] = self.mode[i].get(name, 0)
 
-        for i in range(count, 1000):
-            bytes += [0]
+        self.bytes[self.screen['amount'] * c + 17] = sum(self.bytes) % 256
 
-        bytes += [sum(bytes) % 256]
-
-        return bytes
+        return self.bytes
