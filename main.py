@@ -1,35 +1,33 @@
 #!/usr/bin/env python3
 
-import sys
+# Settings
+import configparser
 
-import view.text
+# Input
+import inout.standard
 
-import frame.control
-import frame.data
+# Settings data
+config = configparser.ConfigParser()
+config.read('settings.ini')
 
-import struct
+settings = dict(config._sections)
+for key, value in settings.items():
+    i = dict(value).items()
+    settings[key] = dict((k, int(v) if v.isdigit() else v) for k, v in i)
 
-import serial_port
+settings.update({
+    "frames": {
+        "bytes": {
+            "header": 11,
+            "data": 990,
+            "checksum": 1
+        }
+    }
+})
 
-# Create content
-font = 'banner'
+# Input / output
+in_out = inout.standard.StandardInput(settings)
+data = in_out.input()
 
-text_class = view.text.Text()
-code = text_class.get(sys.argv[1], font)
-
-# Create frames
-data = []
-
-control_frame = frame.control.New()
-data += control_frame.bytes()
-
-data_frame = frame.data.New()
-data += data_frame.bytes(code, 'redFirst')
-data += data_frame.bytes([], 'redLast')
-
-# Create binary data
-binary = struct.pack('%sB' % len(data), *data)
-
-# Send data
-send = serial_port.Send()
-send.data(binary)
+# Output
+in_out.output(data)
