@@ -2,17 +2,24 @@
 
 import serial
 
-class Send:
-    PORT = '/dev/ttyUSB0'
+class SerialPort:
+    def __init__(self, settings):
+        # Read Serial Port
+        self.port = settings['output']['port']
 
-    def data(self, data):
+    def send(self, data):
         # Configure port
-        led = serial.Serial(self.PORT, baudrate = 19200, stopbits = serial.STOPBITS_TWO, timeout = 0)
+        led = serial.Serial(
+            self.port,
+            baudrate = 19200,
+            stopbits = serial.STOPBITS_TWO,
+            timeout = 0
+        )
 
         # Write data
         led.write(data)
 
-        # Read data (TODO fix)
+        # Read data (TODO)
         r = led.read()
         print(r)
 
