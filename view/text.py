@@ -3,51 +3,37 @@
 import subprocess
 
 class Text:
+    '''Text Class'''
+    def __init__(self, settings):
+        # Read Settings
+        self.screen = settings['screen']
 
-    LENGTH = 128
-    HEIGHT = 16
-    DATABYTES = 990
-
-    # Convert ' ' and  '#' to '0' and '1' (binary format)
-    def number_sign(self, data):
+    def __number_sign(self, data):
+        # Convert ' ' and  '#' to '0' and '1' (binary format)
         return data.translate(str.maketrans(' #', '01'))
 
     def get(self, text = '', font = 'banner'):
-        rawData = subprocess.check_output(['figlet', '-f', font, '-w', str(self.LENGTH), text], universal_newlines=True)
+        length = self.screen['width'] * self.screen['total']
+        rawData = subprocess.check_output(
+            ['figlet', '-f', font, '-w', str(length), text],
+            universal_newlines = True
+        )
 
-        lines = rawData.splitlines()
-
-        for (i, line) in enumerate(lines):
+        data = rawData.splitlines()
+        for (k, l) in enumerate(data):
             # Font selection
             if font == 'banner':
-                line = self.number_sign(line)
+                line = self.__number_sign(l)
             else:
                 line = ''
 
-            # Truncate line
-            if len(line) > self.LENGTH:
-                line = line[:(self.LENGTH -1)]
-            else:
-                line = '{:0^128}'.format(line)
+            # Length normalization
+            line += '0' * (8 - len(line) % 8)
 
-            lines[i] = line
+            data[k] = [int(line[b:b + 8], 2) for b in range(0, len(line), 8)]
 
             # Truncate loop
-            if (i + 1 == self.HEIGHT):
+            if (k + 1 == self.screen['height']):
                 break
 
-        data = ''.join(lines)
-
-        i += 1
-
-        if (i < self.HEIGHT):
-            data += '0' * self.LENGTH * (self.HEIGHT - i)
-
-        dataBytes =  round(len(data) / 8)
-
-        if (dataBytes < self.DATABYTES):
-            data += '0' * 8 * (self.DATABYTES - dataBytes)
-
-        print ('\n'.join(lines).translate(str.maketrans('01', '.#')))
-
-        return [int(data[i:i + 8], 2) for i in range(0, len(data), 8)]
+        return data
