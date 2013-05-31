@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
+import math
 
 class Text:
     '''Text Class'''
@@ -13,27 +14,49 @@ class Text:
         return data.translate(str.maketrans(' #', '01'))
 
     def get(self, text = '', font = 'banner'):
-        length = self.screen['width'] * self.screen['total']
-        rawData = subprocess.check_output(
-            ['figlet', '-f', font, '-w', str(length), text],
+        width = self.screen['width']
+        width_total = width * self.screen['total']
+        height = self.screen['height']
+
+        text_raw = subprocess.check_output(
+            ['figlet', '-f', font, '-w', str(width_total), text],
             universal_newlines = True
         )
 
-        data = rawData.splitlines()
-        for (k, l) in enumerate(data):
+        text_lines = text_raw.splitlines()
+
+        screens = math.ceil(len(max(text_lines, key = len)) / width)
+        bit_map = [['' for h in range(len(text_lines))] for s in range(screens)]
+        for h, w in enumerate(text_lines):
+            # Truncate loop
+            if h > height:
+                break
+
             # Font selection
             if font == 'banner':
-                line = self.__number_sign(l)
+                line = self.__number_sign(w)
             else:
                 line = ''
 
-            # Length normalization
-            line += '0' * (8 - len(line) % 8)
+            count = 0
+            width_max = min(len(line), width_total)
+            for s in range(0, width_max, width):
+                bit_map[count][h] = line[s:(s + width)]
+                count += 1
 
-            data[k] = [int(line[b:b + 8], 2) for b in range(0, len(line), 8)]
+        # Width and Length normalization
+        data = ''
+        for s in range(len(bit_map)):
+            line = ''
+            for l in range(len(bit_map[s])):
+                line += bit_map[s][l] + '0' * (width - len(bit_map[s][l]))
 
-            # Truncate loop
-            if (k + 1 == self.screen['height']):
-                break
+            for l in range(height - len(bit_map[s])):
+                line += '0' * width
 
-        return data
+            data += line
+
+        # From Bits to Bytes
+        bytes = [int(data[b:b + 8], 2) for b in range(0, len(data), 8)]
+
+        return bytes

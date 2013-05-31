@@ -60,7 +60,8 @@ class ControlFrame:
             self.mode[i].update(mode[i])
 
         # Define Frame Layout
-        self.bytes = [0] * sum(settings['frames']['bytes'].values())
+        self.frames = settings['frames']['bytes']
+        self.bytes = [0] * sum(self.frames.values())
 
     def get(self):
         for (byte, name) in self.data_bytes['screen'].items():
@@ -72,12 +73,14 @@ class ControlFrame:
             for (bit, name) in self.data_bits['append'].items():
                 append_mode[bit] = str(self.mode[i]['append'].get(name, 0))
 
-            self.mode[i]['append'] = int(''.join(append_mode), 2)
-
             c = self.data_bytes['amount']['mode']
             for (byte, name) in self.data_bytes['mode'].items():
-                self.bytes[i * c + int(byte)] = self.mode[i].get(name, 0)
+                if name == 'append':
+                    value = int(''.join(append_mode), 2)
+                else:
+                    value = self.mode[i].get(name, 0)
+                self.bytes[i * c + int(byte)] = value
 
-        self.bytes[self.screen['amount'] * c + 17] = sum(self.bytes) % 256
+        self.bytes[sum(self.frames.values()) - self.frames['checksum']] = sum(self.bytes) % 256
 
         return self.bytes

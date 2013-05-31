@@ -142,19 +142,15 @@ class StandardInput:
         elif isinstance(self.output_file, io.TextIOWrapper):
             print(self.__format(data))
         else:
-            bytes_list = []
-            # Control Frame
-            control_frame = frame.control.ControlFrame(self.settings)
-            bytes_list += control_frame.get()
-
             # Data Frame
             data_frame = frame.data.DataFrame(self.settings)
-            bytes_list += data_frame.get(data)
+            data_data = data_frame.get(data)
+
+            # Control Frame
+            control_frame = frame.control.ControlFrame(self.settings, data_data['screen'])
+
+            bytes_list = control_frame.get() + data_data['data']
 
             # Send bynary data to leds
             in_out = inout.serial.SerialPort(self.settings)
             in_out.send(self.__format(bytes_list, {'input': 'd'}))
-
-#            filename = open('com1', 'wb')
-#            filename.write(self.__format(bytes_list, {'input': 'd'}))
-#            filename.close()
