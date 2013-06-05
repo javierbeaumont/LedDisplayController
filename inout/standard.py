@@ -148,9 +148,10 @@ class StandardInput:
 
             # Control Frame
             control_frame = frame.control.ControlFrame(self.settings, data_data['screen'])
+            data_control = control_frame.get()
 
-            bytes_list = control_frame.get() + data_data['data']
+            bytes_list = data_control['data'] + data_data['data']
 
             # Send bynary data to leds
             in_out = inout.serial.SerialPort(self.settings)
-            in_out.send(self.__format(bytes_list, {'input': 'd'}))
+            in_out.send(data_data['screen'], self.__format(bytes_list, {'input': 'd'}))

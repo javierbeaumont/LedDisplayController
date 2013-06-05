@@ -7,21 +7,29 @@ class SerialPort:
         # Read Serial Port
         self.port = settings['output']['port']
 
-    def send(self, data):
+    def send(self, screen, data):
+        if screen:
+            write = [screen, data]
+            timeout = None
+        else:
+            write = [data]
+            timeout = 0
+
         # Configure port
         led = serial.Serial(
             self.port,
             baudrate = 19200,
             stopbits = serial.STOPBITS_TWO,
-            timeout = 0
+            timeout = timeout
         )
 
-        # Write data
-        led.write(data)
+        for d in range(write)
+            # Write data
+            led.write(d)
 
-        # Read data (TODO)
-        r = led.read()
-        print(r)
+            # Read data (TODO)
+            r = led.read()
+            print(r)
 
         # Close port
         led.close()

@@ -81,6 +81,12 @@ class ControlFrame:
                     value = self.mode[i].get(name, 0)
                 self.bytes[i * c + int(byte)] = value
 
-        self.bytes[sum(self.frames.values()) - self.frames['checksum']] = sum(self.bytes) % 256
+        byte = sum(self.frames.values()) - self.frames['checksum']
+        self.bytes[byte] = sum(self.bytes) % 256
 
-        return self.bytes
+        return         return {
+            'data': self.bytes,
+            'screen': {
+                'number': self.bytes[0]
+            }
+        }
