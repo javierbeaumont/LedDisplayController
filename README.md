@@ -15,11 +15,19 @@ Python controller for the **LED 16×128 Multi-Language Moving Sign** — a seria
 | Baud rate | 19200 |
 | Stop bits | 2 |
 | Parity | None |
+| Max display number | 255 |
 
 The display is sold under several names:
 - LED 16×128
 - LED Multi-line Message Display
 - LED Multi-Language Moving Sign (internal software name: *Dztp*)
+
+### Display variants
+
+| Variant | Colors | Max width |
+|---|---|---|
+| Single color | Red, black | 64 px |
+| Double color | Red, green, yellow, black | 32 px |
 
 ---
 
@@ -139,15 +147,44 @@ Each transmission consists of a **1002-byte frame**:
 | 11–1000 | Pixel data (990 bytes max) |
 | 1001 | Checksum (sum of all bytes mod 256) |
 
-### Animation flags
+### Transition types
 
-The control frame encodes animation behavior as bit flags:
+The animation mode byte in the control frame selects the transition:
 
-| Flag | Description |
+| Value | Transition |
 |---|---|
+| `move_right` | Move from right |
+| `move_left` | Move from left |
+| `scroll_up` | Scroll up |
+| `scroll_down` | Scroll down |
+| `jump_right` | Jump from right |
+| `open_left` | Open from left |
+| `open_right` | Open from right |
+| `open_bottom` | Open from bottom |
+| `open_top` | Open from top |
+| `open_center` | Open from center |
+| `open_sides` | Open from both sides |
+| `cover_center` | Cover from center |
+| `cover_sides` | Cover from both sides |
+| `immediate` | No transition |
+| `random` | Random transition |
+
+### Speed
+
+Four speed levels, from slowest to fastest: **Slow → Median → Fast → Fastest**
+
+### Append mode flags
+
+After the transition, append mode controls how the content behaves on screen:
+
+| Flag | Behavior |
+|---|---|
+| `flicker` | Content flashes three times after appearing |
+| `pause` | Content pauses for a configurable number of seconds |
+| `continuum` | Next frame appears immediately as the current one disappears |
+| `quiescence` | Content stays on screen until new data is sent (suitable for single-page display) |
 | `animation` | Enable animation |
 | `continuous` | Loop continuously |
-| `pause` | Pause at end |
 | `winkle` | Winkle effect |
 | `time` | Time-based display |
 | `repose` | Rest state |
